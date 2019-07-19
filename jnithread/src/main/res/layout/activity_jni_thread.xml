@@ -9,4 +9,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="创建一般线程" />
+
+    <Button
+        android:id="@+id/btn_c_produce_consume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="c++生产者消费者" />
+
+    <Button
+        android:id="@+id/btn_stop_c_produce_consume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="c++生产者消费者停止" />
+
+    <Button
+        android:id="@+id/btn_call_back_c"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="java回调c的异常" />
 </LinearLayout>
