@@ -7,6 +7,8 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.tck.myplayer.listener.OnPreparedListener;
+import com.tck.myplayer.log.MyLog;
 import com.tck.myplayer.player.Player;
 
 /**
@@ -31,6 +33,11 @@ public class PlayerActivity extends AppCompatActivity {
         Player player = new Player();
         player.setSource(videoUrl);
         player.prepared();
-
+        player.setOnPreparedListener(new OnPreparedListener() {
+            @Override
+            public void onPrepared() {
+                MyLog.d("java收到native Prepared成功");
+            }
+        });
     }
 }
