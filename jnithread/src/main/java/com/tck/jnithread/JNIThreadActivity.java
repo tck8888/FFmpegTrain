@@ -1,6 +1,7 @@
 package com.tck.jnithread;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class JNIThreadActivity extends AppCompatActivity {
 
     private Button btnCreateNormalThread;
+    private JNIThread jniThread;
 
 
     @Override
@@ -27,5 +29,14 @@ public class JNIThreadActivity extends AppCompatActivity {
 
         btnCreateNormalThread = (Button) findViewById(R.id.btn_create_normal_thread);
 
+
+        jniThread = new JNIThread();
+
+        btnCreateNormalThread.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                jniThread.normalThread();
+            }
+        });
     }
 }
