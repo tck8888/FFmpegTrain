@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tck.jnithread" >
+
+    <application>
+        <activity android:name=".JNIThreadActivity" />
+    </application>
+</manifest>
+
+
