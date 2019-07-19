@@ -1,1 +1,1 @@
-include ':app', ':jnithread', ':common'
+include ':app', ':jnithread', ':common', ':myplayer'
