@@ -4,11 +4,12 @@
 
 #include "TCKAudio.h"
 
-TCKAudio::TCKAudio(TCKPlayStatus *playstatus, int sample_rate) {
+TCKAudio::TCKAudio(TCKPlayStatus *playstatus, int sample_rate, CallJava *callJava) {
     this->playstatus = playstatus;
     this->sample_rate = sample_rate;
+    this->callJava = callJava;
     queue = new TCKQueue(playstatus);
-    buffer = (uint8_t *) av_malloc(44100 * 2 * 2);
+    buffer = (uint8_t *) av_malloc(sample_rate * 2 * 2);
 }
 
 TCKAudio::~TCKAudio() {
@@ -32,6 +33,20 @@ void TCKAudio::play() {
 int TCKAudio::resampleAudio() {
 
     while (playstatus != NULL && !playstatus->exit) {
+
+        if (queue->getQueueSize() == 0) {
+            //加载中
+            if (!playstatus->load) {
+                playstatus->load = true;
+                callJava->onCallLoad(CHILD_THREAD, true);
+            }
+            continue;
+        } else {
+            if (playstatus->load) {
+                playstatus->load = false;
+                callJava->onCallLoad(CHILD_THREAD, false);
+            }
+        }
         avPacket = av_packet_alloc();
         if (queue->getAvpacket(avPacket) != 0) {
             av_packet_free(&avPacket);
@@ -90,9 +105,6 @@ int TCKAudio::resampleAudio() {
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 
-            if (LOG_DEBUG) {
-                LOGE("data_size is %d", data_size);
-            }
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -232,4 +244,17 @@ int TCKAudio::getCurrentSampleRateForOpensles(int sample_rate) {
             rate = SL_SAMPLINGRATE_44_1;
     }
     return rate;
+}
+
+void TCKAudio::pause() {
+    if (pcmPlayerPlay != NULL) {
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PAUSED);
+    }
+
+}
+
+void TCKAudio::resume() {
+    if (pcmPlayerPlay != NULL) {
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay, SL_PLAYSTATE_PLAYING);
+    }
 }

@@ -39,7 +39,7 @@ Java_com_tck_myplayer_player_Player_nativePrepared(JNIEnv *env, jobject instance
             callJava = new CallJava(javaVM, env, &instance);
         }
         playstatus = new TCKPlayStatus();
-        fFmpeg = new TCKFFmpeg(playstatus,callJava, source);
+        fFmpeg = new TCKFFmpeg(playstatus, callJava, source);
         fFmpeg->prepared();
     }
 }
@@ -49,5 +49,20 @@ JNIEXPORT void JNICALL
 Java_com_tck_myplayer_player_Player_nativeStart(JNIEnv *env, jobject instance) {
     if (fFmpeg != NULL) {
         fFmpeg->start();
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_tck_myplayer_player_Player_nativePause(JNIEnv *env, jobject instance) {
+    if (fFmpeg != NULL) {
+        fFmpeg->pause();
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_tck_myplayer_player_Player_nativeResume(JNIEnv *env, jobject instance) {
+    if (fFmpeg != NULL) {
+        fFmpeg->resume();
     }
 }

@@ -7,6 +7,7 @@
 
 #include "TCKQueue.h"
 #include "TCKPlayStatus.h"
+#include "CallJava.h"
 
 extern "C"
 {
@@ -24,6 +25,7 @@ public:
     AVCodecParameters *codecpar = NULL;
     TCKQueue *queue = NULL;
     TCKPlayStatus *playstatus = NULL;
+    CallJava *callJava = NULL;
 
     pthread_t thread_play;
     AVPacket *avPacket = NULL;
@@ -51,16 +53,21 @@ public:
     SLAndroidSimpleBufferQueueItf pcmBufferQueue = NULL;
 
 public:
-    TCKAudio(TCKPlayStatus *playstatus, int sample_rate);
+    TCKAudio(TCKPlayStatus *playstatus, int sample_rate,CallJava *callJava);
 
     ~TCKAudio();
 
     void play();
+
     int resampleAudio();
 
     void initOpenSLES();
 
     int getCurrentSampleRateForOpensles(int sample_rate);
+
+    void pause();
+
+    void resume();
 };
 
 

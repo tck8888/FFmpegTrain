@@ -2,6 +2,8 @@ package com.tck.myplayer.player;
 
 import android.text.TextUtils;
 
+import com.tck.myplayer.listener.OnLoadListener;
+import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
 import com.tck.myplayer.log.MyLog;
 
@@ -32,6 +34,8 @@ public class Player {
     private String source;
 
     private OnPreparedListener onPreparedListener;
+    private OnLoadListener onLoadListener;
+    private OnPauseResumeListener onPauseResumeListener;
 
     public Player() {
     }
@@ -50,6 +54,7 @@ public class Player {
             MyLog.d("source not be empty");
             return;
         }
+        onCallLoad(true);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -61,6 +66,15 @@ public class Player {
 
     public void setOnPreparedListener(OnPreparedListener onPreparedListener) {
         this.onPreparedListener = onPreparedListener;
+    }
+
+    public void setOnLoadListener(OnLoadListener onLoadListener) {
+        this.onLoadListener = onLoadListener;
+    }
+
+    public void setOnPauseResumeListener(OnPauseResumeListener onPauseResumeListener) {
+        this.onPauseResumeListener = onPauseResumeListener;
+
     }
 
     public void start() {
@@ -76,6 +90,26 @@ public class Player {
         }).start();
     }
 
+    public void pause() {
+        nativePause();
+        if (onPauseResumeListener != null) {
+            onPauseResumeListener.onPause(true);
+        }
+    }
+
+    public void resume() {
+        nativeResume();
+        if (onPauseResumeListener != null) {
+            onPauseResumeListener.onPause(false);
+        }
+    }
+
+    public void onCallLoad(boolean load) {
+        if (onLoadListener != null) {
+            onLoadListener.onLoad(load);
+        }
+    }
+
 
     /**
      * c++回调java的方法
@@ -87,8 +121,13 @@ public class Player {
     }
 
 
-    public native void nativePrepared(String source);
+    private native void nativePrepared(String source);
 
-    public native void nativeStart();
+    private native void nativeStart();
+
+    private native void nativeResume();
+
+    private native void nativePause();
+
 
 }

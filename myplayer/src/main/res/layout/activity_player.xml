@@ -36,9 +36,10 @@
             android:text="暂停" />
 
         <Button
+            android:id="@+id/btn_resume"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="" />
+            android:text="恢复" />
     </LinearLayout>
 </LinearLayout>

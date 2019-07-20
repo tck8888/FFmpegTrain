@@ -50,7 +50,8 @@ void TCKFFmpeg::decodeFFmpegThread() {
         //4. 得到音频流
         if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (audio == NULL) {
-                audio = new TCKAudio(playstatus,pFormatCtx->streams[i]->codecpar->sample_rate);
+                audio = new TCKAudio(playstatus, pFormatCtx->streams[i]->codecpar->sample_rate,
+                                     callJava);
                 audio->streamIndex = i;
                 audio->codecpar = pFormatCtx->streams[i]->codecpar;
             }
@@ -101,20 +102,12 @@ void TCKFFmpeg::start() {
 
     audio->play();
 
-
-    int count = 0;
-
     while (playstatus != NULL && !playstatus->exit) {
         AVPacket *avPacket = av_packet_alloc();
 
         if (av_read_frame(pFormatCtx, avPacket) == 0) {
             if (avPacket->stream_index == audio->streamIndex) {
-
                 //解码操作
-                count++;
-                if (LOG_DEBUG) {
-                    LOGE("解码第 %d 帧", count);
-                }
                 audio->queue->putAvpacket(avPacket);
             } else {
                 av_packet_free(&avPacket);
@@ -140,4 +133,16 @@ void TCKFFmpeg::start() {
         LOGD("解码完成");
     }
 
+}
+
+void TCKFFmpeg::pause() {
+    if (audio != NULL) {
+        audio->pause();
+    }
+}
+
+void TCKFFmpeg::resume() {
+    if (audio != NULL) {
+        audio->resume();
+    }
 }

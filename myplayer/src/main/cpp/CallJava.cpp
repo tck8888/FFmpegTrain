@@ -19,7 +19,8 @@ CallJava::CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj) {
         return;
     }
 
-    jmid_parpared = env->GetMethodID(jlz, "onCallPrepared", "()V");
+    jmid_prepared = env->GetMethodID(jlz, "onCallPrepared", "()V");
+    jmid_load = env->GetMethodID(jlz, "onCallLoad", "(Z)V");
 
 }
 
@@ -30,7 +31,7 @@ CallJava::~CallJava() {
 void CallJava::onCallPrepared(int type) {
 
     if (type == MAIN_THREAD) {
-        jniEnv->CallVoidMethod(jobj, jmid_parpared);
+        jniEnv->CallVoidMethod(jobj, jmid_prepared);
     } else if (type == CHILD_THREAD) {
         JNIEnv *jniEnv;
         if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
@@ -39,10 +40,27 @@ void CallJava::onCallPrepared(int type) {
             }
             return;
         }
-        jniEnv->CallVoidMethod(jobj, jmid_parpared);
+        jniEnv->CallVoidMethod(jobj, jmid_prepared);
         javaVM->DetachCurrentThread();
     }
 
+}
+
+void CallJava::onCallLoad(int type, bool load) {
+
+    if (type == MAIN_THREAD) {
+        jniEnv->CallVoidMethod(jobj, jmid_load, load);
+    } else if (type == CHILD_THREAD) {
+        JNIEnv *jniEnv;
+        if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+            if (LOG_DEBUG) {
+                LOGE("call onCllLoad worng");
+            }
+            return;
+        }
+        jniEnv->CallVoidMethod(jobj, jmid_load, load);
+        javaVM->DetachCurrentThread();
+    }
 }
 
 
