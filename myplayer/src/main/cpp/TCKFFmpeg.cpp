@@ -50,7 +50,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         //4. 得到音频流
         if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (audio == NULL) {
-                audio = new TCKAudio(playstatus);
+                audio = new TCKAudio(playstatus,pFormatCtx->streams[i]->codecpar->sample_rate);
                 audio->streamIndex = i;
                 audio->codecpar = pFormatCtx->streams[i]->codecpar;
             }
