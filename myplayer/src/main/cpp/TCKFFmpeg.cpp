@@ -99,9 +99,12 @@ void TCKFFmpeg::start() {
         }
     }
 
+    audio->play();
+
+
     int count = 0;
 
-    while (1) {
+    while (playstatus != NULL && !playstatus->exit) {
         AVPacket *avPacket = av_packet_alloc();
 
         if (av_read_frame(pFormatCtx, avPacket) == 0) {
@@ -119,23 +122,18 @@ void TCKFFmpeg::start() {
                 avPacket = NULL;
             }
         } else {
-            if (LOG_DEBUG) {
-                LOGE("decode finished");
-            }
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
-            break;
+            while (playstatus != NULL && !playstatus->exit) {
+                if (audio->queue->getQueueSize() > 0) {
+                    continue;
+                } else {
+                    playstatus->exit = true;
+                    break;
+                }
+            }
         }
-    }
-
-    //模拟出队
-    while (audio->queue->getQueueSize() > 0) {
-        AVPacket *packet = av_packet_alloc();
-        audio->queue->getAvpacket(packet);
-        av_packet_free(&packet);
-        av_free(packet);
-        packet = NULL;
     }
 
     if (LOG_DEBUG) {
