@@ -142,4 +142,6 @@ void TCKFFmpeg::start() {
         LOGD("解码完成");
     }
 
+
+
 }
