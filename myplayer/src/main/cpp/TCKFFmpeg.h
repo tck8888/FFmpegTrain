@@ -14,24 +14,27 @@
 
 extern "C"
 {
-#include "libavformat/avformat.h"
-};
 
+#include <libavformat/avformat.h>
+};
 
 
 class TCKFFmpeg {
 public:
     CallJava *callJava = NULL;
-    const char* url = NULL;
+    const char *url = NULL;
     pthread_t decodeThread;
     AVFormatContext *pFormatCtx = NULL;
     TCKAudio *audio = NULL;
 public:
     TCKFFmpeg(CallJava *callJava, const char *url);
+
     ~TCKFFmpeg();
 
     void prepared();
+
     void decodeFFmpegThread();
+
     void start();
 };
 

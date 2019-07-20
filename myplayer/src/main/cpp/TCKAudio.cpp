@@ -3,3 +3,13 @@
 //
 
 #include "TCKAudio.h"
+
+TCKAudio::TCKAudio() {
+
+
+}
+
+TCKAudio::~TCKAudio() {
+
+
+}

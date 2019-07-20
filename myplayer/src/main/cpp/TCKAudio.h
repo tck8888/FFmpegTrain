@@ -12,7 +12,13 @@ extern "C"
 
 
 class TCKAudio {
-
+public:
+    int streamIndex = -1;
+    AVCodecContext *avCodecContext = NULL;
+    AVCodecParameters *codecpar = NULL;
+public:
+    TCKAudio();
+    ~TCKAudio();
 };
 
 

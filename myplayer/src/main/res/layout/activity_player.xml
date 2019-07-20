@@ -15,25 +15,29 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/btn_prepare"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="准备" />
 
-            android:text="播放"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
         <Button
-            android:text="播放"
+            android:id="@+id/btn_start"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="播放" />
+
         <Button
-            android:text="播放"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="" />
+
         <Button
-            android:text="播放"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:text="" />
     </LinearLayout>
 </LinearLayout>

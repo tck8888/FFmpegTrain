@@ -44,5 +44,7 @@ Java_com_tck_myplayer_player_Player_nativePrepared(JNIEnv *env, jobject instance
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_tck_myplayer_player_Player_nativeStart(JNIEnv *env, jobject instance) {
-
+    if (fFmpeg != NULL) {
+        fFmpeg->start();
+    }
 }
