@@ -105,6 +105,14 @@ int TCKAudio::resampleAudio() {
             int out_channels = av_get_channel_layout_nb_channels(AV_CH_LAYOUT_STEREO);
             data_size = nb * out_channels * av_get_bytes_per_sample(AV_SAMPLE_FMT_S16);
 
+
+            now_time = avFrame->pts * av_q2d(time_base);
+            if (now_time < clock) {
+                now_time = clock;
+            }
+            clock = now_time;
+
+
             av_packet_free(&avPacket);
             av_free(avPacket);
             avPacket = NULL;
@@ -131,6 +139,14 @@ void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void *context) {
     if (tckAudio != NULL) {
         int buffersize = tckAudio->resampleAudio();
         if (buffersize > 0) {
+            tckAudio->clock += buffersize / ((double) (tckAudio->sample_rate * 2 * 2));
+            if (tckAudio->clock - tckAudio->last_time >= 0.1) {
+                tckAudio->last_time = tckAudio->clock;
+                //回调应用层
+                tckAudio->callJava->onCallTimeInfo(CHILD_THREAD, tckAudio->clock,
+                                                   tckAudio->duration);
+            }
+
             (*tckAudio->pcmBufferQueue)->Enqueue(tckAudio->pcmBufferQueue,
                                                  (char *) tckAudio->buffer,
                                                  buffersize);

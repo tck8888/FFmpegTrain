@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import com.tck.myplayer.listener.OnLoadListener;
 import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
+import com.tck.myplayer.listener.OnTimeInfoListener;
 import com.tck.myplayer.log.MyLog;
 
 /**
@@ -32,10 +33,12 @@ public class Player {
      * 数据源
      */
     private String source;
+    private static TimeInfoBean timeInfoBean;
 
     private OnPreparedListener onPreparedListener;
     private OnLoadListener onLoadListener;
     private OnPauseResumeListener onPauseResumeListener;
+    private OnTimeInfoListener onTimeInfoListener;
 
     public Player() {
     }
@@ -77,6 +80,10 @@ public class Player {
 
     }
 
+    public void setOnTimeInfoListener(OnTimeInfoListener onTimeInfoListener) {
+        this.onTimeInfoListener = onTimeInfoListener;
+    }
+
     public void start() {
         if (TextUtils.isEmpty(source)) {
             MyLog.d("source is empty");
@@ -103,6 +110,18 @@ public class Player {
             onPauseResumeListener.onPause(false);
         }
     }
+
+    public void onCallTimeInfo(int currentTime, int totalTime) {
+        if (onTimeInfoListener != null) {
+            if (timeInfoBean == null) {
+                timeInfoBean = new TimeInfoBean();
+            }
+            timeInfoBean.setCurrentTime(currentTime);
+            timeInfoBean.setTotalTime(totalTime);
+            onTimeInfoListener.onTimeInfo(timeInfoBean);
+        }
+    }
+
 
     public void onCallLoad(boolean load) {
         if (onLoadListener != null) {
