@@ -5,6 +5,9 @@
 #ifndef FFMPEGTRAIN_TCKAUDIO_H
 #define FFMPEGTRAIN_TCKAUDIO_H
 
+#include "TCKQueue.h"
+#include "TCKPlayStatus.h"
+
 extern "C"
 {
 #include "libavcodec/avcodec.h"
@@ -16,8 +19,11 @@ public:
     int streamIndex = -1;
     AVCodecContext *avCodecContext = NULL;
     AVCodecParameters *codecpar = NULL;
+    TCKQueue *queue = NULL;
+    TCKPlayStatus *playstatus = NULL;
 public:
-    TCKAudio();
+    TCKAudio(TCKPlayStatus *playstatus);
+
     ~TCKAudio();
 };
 

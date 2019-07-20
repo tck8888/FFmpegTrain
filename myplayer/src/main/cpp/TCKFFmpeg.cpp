@@ -5,7 +5,8 @@
 
 #include "TCKFFmpeg.h"
 
-TCKFFmpeg::TCKFFmpeg(CallJava *callJava, const char *url) {
+TCKFFmpeg::TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *url) {
+    this->playstatus = playstatus;
     this->callJava = callJava;
     this->url = url;
 }
@@ -49,7 +50,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         //4. 得到音频流
         if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
             if (audio == NULL) {
-                audio = new TCKAudio();
+                audio = new TCKAudio(playstatus);
                 audio->streamIndex = i;
                 audio->codecpar = pFormatCtx->streams[i]->codecpar;
             }
@@ -111,12 +112,11 @@ void TCKFFmpeg::start() {
                 if (LOG_DEBUG) {
                     LOGE("解码第 %d 帧", count);
                 }
-
-                av_packet_free(&avPacket);
-                av_free(avPacket);
+                audio->queue->putAvpacket(avPacket);
             } else {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
+                avPacket = NULL;
             }
         } else {
             if (LOG_DEBUG) {
@@ -124,7 +124,22 @@ void TCKFFmpeg::start() {
             }
             av_packet_free(&avPacket);
             av_free(avPacket);
+            avPacket = NULL;
             break;
         }
     }
+
+    //模拟出队
+    while (audio->queue->getQueueSize() > 0) {
+        AVPacket *packet = av_packet_alloc();
+        audio->queue->getAvpacket(packet);
+        av_packet_free(&packet);
+        av_free(packet);
+        packet = NULL;
+    }
+
+    if (LOG_DEBUG) {
+        LOGD("解码完成");
+    }
+
 }

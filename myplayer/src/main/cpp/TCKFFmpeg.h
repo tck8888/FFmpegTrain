@@ -11,6 +11,7 @@
 #include "CallJava.h"
 #include "pthread.h"
 #include "TCKAudio.h"
+#include "TCKPlayStatus.h"
 
 extern "C"
 {
@@ -26,8 +27,9 @@ public:
     pthread_t decodeThread;
     AVFormatContext *pFormatCtx = NULL;
     TCKAudio *audio = NULL;
+    TCKPlayStatus *playstatus = NULL;
 public:
-    TCKFFmpeg(CallJava *callJava, const char *url);
+    TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *url);
 
     ~TCKFFmpeg();
 

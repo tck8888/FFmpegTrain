@@ -4,9 +4,9 @@
 
 #include "TCKAudio.h"
 
-TCKAudio::TCKAudio() {
-
-
+TCKAudio::TCKAudio(TCKPlayStatus *playstatus) {
+    this->playstatus = playstatus;
+    queue = new TCKQueue(playstatus);
 }
 
 TCKAudio::~TCKAudio() {

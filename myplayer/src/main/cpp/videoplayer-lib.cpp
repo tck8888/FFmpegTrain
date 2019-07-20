@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <string>
 #include "TCKFFmpeg.h"
+#include "TCKPlayStatus.h"
 
 extern "C"
 {
@@ -12,6 +13,7 @@ _JavaVM *javaVM = NULL;
 CallJava *callJava = NULL;
 
 TCKFFmpeg *fFmpeg = NULL;
+TCKPlayStatus *playstatus = NULL;
 
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
@@ -36,7 +38,8 @@ Java_com_tck_myplayer_player_Player_nativePrepared(JNIEnv *env, jobject instance
         if (callJava == NULL) {
             callJava = new CallJava(javaVM, env, &instance);
         }
-        fFmpeg = new TCKFFmpeg(callJava, source);
+        playstatus = new TCKPlayStatus();
+        fFmpeg = new TCKFFmpeg(playstatus,callJava, source);
         fFmpeg->prepared();
     }
 }
