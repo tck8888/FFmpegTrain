@@ -2,6 +2,7 @@ package com.tck.myplayer.player;
 
 import android.text.TextUtils;
 
+import com.tck.myplayer.listener.OnCompleteListener;
 import com.tck.myplayer.listener.OnErrorListener;
 import com.tck.myplayer.listener.OnLoadListener;
 import com.tck.myplayer.listener.OnPauseResumeListener;
@@ -41,6 +42,7 @@ public class Player {
     private OnPauseResumeListener onPauseResumeListener;
     private OnTimeInfoListener onTimeInfoListener;
     private OnErrorListener onErrorListener;
+    private OnCompleteListener onCompleteListener;
 
     public Player() {
     }
@@ -89,6 +91,10 @@ public class Player {
         this.onErrorListener = onErrorListener;
     }
 
+    public void setOnCompleteListener(OnCompleteListener onCompleteListener) {
+        this.onCompleteListener = onCompleteListener;
+    }
+
     public void start() {
         if (TextUtils.isEmpty(source)) {
             MyLog.d("source is empty");
@@ -126,6 +132,11 @@ public class Player {
         }).start();
     }
 
+    public void seek(int secds) {
+        nativeSeek(secds);
+    }
+
+
     public void onCallTimeInfo(int currentTime, int totalTime) {
         if (onTimeInfoListener != null) {
             if (timeInfoBean == null) {
@@ -161,6 +172,13 @@ public class Player {
         }
     }
 
+    public void onCallComplete() {
+        if (onCompleteListener != null) {
+            onCompleteListener.onComplete();
+        }
+    }
+
+
     private native void nativePrepared(String source);
 
     private native void nativeStart();
@@ -170,6 +188,8 @@ public class Player {
     private native void nativePause();
 
     private native void nativeStop();
+
+    private native void nativeSeek(int secds);
 
 
 }

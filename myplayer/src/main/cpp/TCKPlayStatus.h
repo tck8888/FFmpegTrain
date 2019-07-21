@@ -10,6 +10,8 @@ class TCKPlayStatus {
 public:
     bool exit = false;
     bool load = true;
+    bool seek = false;
+
 public:
     TCKPlayStatus();
     ~TCKPlayStatus();

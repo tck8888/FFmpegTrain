@@ -42,7 +42,6 @@ public:
     double now_time;//当前frame时间
     double last_time; //上一次调用时间
 
-
     // 引擎接口
     SLObjectItf engineObject = NULL;
     SLEngineItf engineEngine = NULL;

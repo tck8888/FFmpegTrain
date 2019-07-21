@@ -17,6 +17,8 @@ TCKPlayStatus *playstatus = NULL;
 
 bool nexit = true;
 
+pthread_t thread_start;
+
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     jint result = -1;
@@ -47,11 +49,20 @@ Java_com_tck_myplayer_player_Player_nativePrepared(JNIEnv *env, jobject instance
     }
 }
 
+void *startCallBack(void *data)
+{
+    TCKFFmpeg *fFmpeg = (TCKFFmpeg *) data;
+    fFmpeg->start();
+    pthread_exit(&thread_start);
+}
+
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_tck_myplayer_player_Player_nativeStart(JNIEnv *env, jobject instance) {
-    if (fFmpeg != NULL) {
-        fFmpeg->start();
+    if(fFmpeg != NULL)
+    {
+        pthread_create(&thread_start, NULL, startCallBack, fFmpeg);
     }
 }
 extern "C"
@@ -93,4 +104,12 @@ Java_com_tck_myplayer_player_Player_nativeStop(JNIEnv *env, jobject instance) {
         }
     }
     nexit = true;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_tck_myplayer_player_Player_nativeSeek(JNIEnv *env, jobject instance, jint secds) {
+    if (fFmpeg != NULL) {
+        fFmpeg->seek(secds);
+    }
 }

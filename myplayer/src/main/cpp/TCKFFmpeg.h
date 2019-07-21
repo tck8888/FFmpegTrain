@@ -33,6 +33,10 @@ public:
     pthread_mutex_t init_mutex;
     bool exit = false;
 
+
+    int duration = 0;
+    pthread_mutex_t seek_mutex;
+
 public:
     TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *url);
 
@@ -49,6 +53,8 @@ public:
     void resume();
 
     void release();
+
+    void seek(int64_t secds);
 };
 
 

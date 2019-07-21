@@ -9,12 +9,14 @@ import android.os.Message;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.tck.myplayer.listener.OnCompleteListener;
 import com.tck.myplayer.listener.OnErrorListener;
 import com.tck.myplayer.listener.OnLoadListener;
 import com.tck.myplayer.listener.OnPauseResumeListener;
@@ -41,6 +43,7 @@ public class PlayerActivity extends AppCompatActivity {
     private Button btnPause;
     private Button btnResume;
     private Button btnStop;
+    private SeekBar seekBar;
     private TextView tvTime;
 
 
@@ -59,7 +62,9 @@ public class PlayerActivity extends AppCompatActivity {
         btnPause = (Button) findViewById(R.id.btn_pause);
         btnResume = (Button) findViewById(R.id.btn_resume);
         btnStop = (Button) findViewById(R.id.btn_stop);
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
         tvTime = (TextView) findViewById(R.id.tv_time);
+
 
         player = new Player();
 
@@ -111,6 +116,13 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
+        player.setOnCompleteListener(new OnCompleteListener() {
+            @Override
+            public void onComplete() {
+                MyLog.d("播放完成");
+            }
+        });
+
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,6 +148,24 @@ public class PlayerActivity extends AppCompatActivity {
                 player.stop();
             }
         });
+        seekBar.setMax(219);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int progress = seekBar.getProgress();
+                player.seek(progress);
+            }
+        });
     }
 
     Handler handler = new Handler() {
@@ -143,9 +173,9 @@ public class PlayerActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (msg.what == 1) {
-                TimeInfoBean wlTimeInfoBean = (TimeInfoBean) msg.obj;
-                tvTime.setText(TimeUtil.secdsToDateFormat(wlTimeInfoBean.getTotalTime(), wlTimeInfoBean.getTotalTime())
-                        + "/" + TimeUtil.secdsToDateFormat(wlTimeInfoBean.getCurrentTime(), wlTimeInfoBean.getTotalTime()));
+                TimeInfoBean timeInfoBean = (TimeInfoBean) msg.obj;
+                tvTime.setText(TimeUtil.secdsToDateFormat(timeInfoBean.getTotalTime(), timeInfoBean.getTotalTime())
+                        + "/" + TimeUtil.secdsToDateFormat(timeInfoBean.getCurrentTime(), timeInfoBean.getTotalTime()));
             }
         }
     };

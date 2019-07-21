@@ -44,6 +44,11 @@
 
     </LinearLayout>
 
+    <SeekBar
+        android:id="@+id/seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp" />
+
     <TextView
         android:id="@+id/tv_time"
         android:layout_width="wrap_content"
