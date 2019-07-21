@@ -12,6 +12,7 @@
 #include "pthread.h"
 #include "TCKAudio.h"
 #include "TCKPlayStatus.h"
+#include "TCKVideo.h"
 
 extern "C"
 {
@@ -37,6 +38,9 @@ public:
     int duration = 0;
     pthread_mutex_t seek_mutex;
 
+
+    TCKVideo *tckVideo = NULL;
+
 public:
     TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *url);
 
@@ -55,6 +59,9 @@ public:
     void release();
 
     void seek(int64_t secds);
+
+
+    int getCodecContext(AVCodecParameters *codecpar,AVCodecContext **avCodecContext);
 };
 
 

@@ -49,7 +49,8 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     // private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
-    private String videoUrl = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3";
+    private String videoUrl = "/sdcard/DCIM/Camera/eacc4ca0e547e0f4f5a5ea4f1fa1b7f8.mp4";
+    //private String videoUrl = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3";
     private Player player;
 
     @Override
@@ -171,7 +172,7 @@ public class PlayerActivity extends AppCompatActivity {
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                player.playNext("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
+               // player.playNext("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
             }
         });
     }

@@ -30,6 +30,7 @@ add_library( # Sets the name of the library.
         src/main/cpp/TCKAudio.cpp
         src/main/cpp/TCKQueue.cpp
         src/main/cpp/TCKPlayStatus.cpp
+        src/main/cpp/TCKVideo.cpp
         )
 
 add_library(avcodec-57 SHARED IMPORTED)

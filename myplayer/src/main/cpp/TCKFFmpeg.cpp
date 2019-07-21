@@ -75,50 +75,22 @@ void TCKFFmpeg::decodeFFmpegThread() {
                 audio->time_base = pFormatCtx->streams[i]->time_base;
                 duration = audio->duration;
             }
+        } else if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            if (tckVideo == NULL) {
+                tckVideo = new TCKVideo(playstatus, callJava);
+                tckVideo->streamIndex = i;
+                tckVideo->codecpar = pFormatCtx->streams[i]->codecpar;
+                tckVideo->time_base = pFormatCtx->streams[i]->time_base;
+            }
         }
     }
 
-    AVCodec *dec = avcodec_find_decoder(audio->codecpar->codec_id);
-    if (!dec) {
-        if (LOG_DEBUG) {
-            LOGE("can not find decoder");
-        }
-        callJava->onCallError(CHILD_THREAD, 1003, "can not find decoder");
-        exit = true;
-        pthread_mutex_unlock(&init_mutex);
-        return;
+    if (audio != NULL) {
+        getCodecContext(audio->codecpar, &audio->avCodecContext);
+    } else if (tckVideo != NULL) {
+        getCodecContext(tckVideo->codecpar, &tckVideo->avCodecContext);
     }
 
-    audio->avCodecContext = avcodec_alloc_context3(dec);
-    if (!audio->avCodecContext) {
-        if (LOG_DEBUG) {
-            LOGE("can not alloc new decodecctx");
-        }
-        callJava->onCallError(CHILD_THREAD, 1004, "can not alloc new decodecctx");
-        exit = true;
-        pthread_mutex_unlock(&init_mutex);
-        return;
-    }
-
-    if (avcodec_parameters_to_context(audio->avCodecContext, audio->codecpar) < 0) {
-        if (LOG_DEBUG) {
-            LOGE("can not fill decodecctx");
-        }
-        callJava->onCallError(CHILD_THREAD, 1005, "ccan not fill decodecctx");
-        exit = true;
-        pthread_mutex_unlock(&init_mutex);
-        return;
-    }
-
-    if (avcodec_open2(audio->avCodecContext, dec, 0) != 0) {
-        if (LOG_DEBUG) {
-            LOGE("cant not open audio strames");
-        }
-        callJava->onCallError(CHILD_THREAD, 1006, "cant not open audio strames");
-        exit = true;
-        pthread_mutex_unlock(&init_mutex);
-        return;
-    }
     if (callJava != NULL) {
         if (playstatus != NULL && !playstatus->exit) {
             callJava->onCallPrepared(CHILD_THREAD);
@@ -131,22 +103,28 @@ void TCKFFmpeg::decodeFFmpegThread() {
 
 void TCKFFmpeg::start() {
 
-    if (audio == NULL) {
+    if (audio == NULL && tckVideo == NULL) {
         return;
     }
     audio->play();
+    tckVideo->play();
     while (playstatus != NULL && !playstatus->exit) {
         if (playstatus->seek) {
+            av_usleep(1000 * 100);
             continue;
         }
 
         if (audio->queue->getQueueSize() > 40) {
+            av_usleep(1000 * 100);
             continue;
         }
         AVPacket *avPacket = av_packet_alloc();
         if (av_read_frame(pFormatCtx, avPacket) == 0) {
             if (avPacket->stream_index == audio->streamIndex) {
                 audio->queue->putAvpacket(avPacket);
+            } else if (avPacket->stream_index == tckVideo->streamIndex) {
+                tckVideo->queue->putAvpacket(avPacket);
+                LOGE("获取到视频")
             } else {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
@@ -156,6 +134,7 @@ void TCKFFmpeg::start() {
             av_free(avPacket);
             while (playstatus != NULL && !playstatus->exit) {
                 if (audio->queue->getQueueSize() > 0) {
+                    av_usleep(1000 * 100);
                     continue;
                 } else {
                     playstatus->exit = true;
@@ -259,4 +238,49 @@ void TCKFFmpeg::seek(int64_t secds) {
             playstatus->seek = false;
         }
     }
+}
+
+int TCKFFmpeg::getCodecContext(AVCodecParameters *codecpar, AVCodecContext **avCodecContext) {
+    AVCodec *dec = avcodec_find_decoder(audio->codecpar->codec_id);
+    if (!dec) {
+        if (LOG_DEBUG) {
+            LOGE("can not find decoder");
+        }
+        callJava->onCallError(CHILD_THREAD, 1003, "can not find decoder");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+        return -1;
+    }
+
+    *avCodecContext = avcodec_alloc_context3(dec);
+    if (!audio->avCodecContext) {
+        if (LOG_DEBUG) {
+            LOGE("can not alloc new decodecctx");
+        }
+        callJava->onCallError(CHILD_THREAD, 1004, "can not alloc new decodecctx");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+        return -1;
+    }
+
+    if (avcodec_parameters_to_context(*avCodecContext, audio->codecpar) < 0) {
+        if (LOG_DEBUG) {
+            LOGE("can not fill decodecctx");
+        }
+        callJava->onCallError(CHILD_THREAD, 1005, "ccan not fill decodecctx");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+        return -1;
+    }
+
+    if (avcodec_open2(*avCodecContext, dec, 0) != 0) {
+        if (LOG_DEBUG) {
+            LOGE("cant not open audio strames");
+        }
+        callJava->onCallError(CHILD_THREAD, 1006, "cant not open audio strames");
+        exit = true;
+        pthread_mutex_unlock(&init_mutex);
+        return -1;
+    }
+    return 0;
 }
