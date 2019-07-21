@@ -11,8 +11,23 @@ TCKQueue::TCKQueue(TCKPlayStatus *playstatus) {
 }
 
 TCKQueue::~TCKQueue() {
-    pthread_mutex_destroy(&mutexPacket);
-    pthread_cond_destroy(&condPacket);
+
+    clearAvpacket();
+
+}
+
+void TCKQueue::clearAvpacket() {
+    pthread_cond_signal(&condPacket);
+    pthread_mutex_unlock(&mutexPacket);
+
+    while (!queuePacket.empty()) {
+        AVPacket *packet = queuePacket.front();
+        queuePacket.pop();
+        av_packet_free(&packet);
+        av_free(packet);
+        packet = NULL;
+    }
+    pthread_mutex_unlock(&mutexPacket);
 }
 
 int TCKQueue::putAvpacket(AVPacket *packet) {
@@ -38,7 +53,7 @@ int TCKQueue::getAvpacket(AVPacket *packet) {
             av_free(avPacket);
             avPacket = NULL;
             break;
-        }else{
+        } else {
             pthread_cond_wait(&condPacket, &mutexPacket);
         }
     }

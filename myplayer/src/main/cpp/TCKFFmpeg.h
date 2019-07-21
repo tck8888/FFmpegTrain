@@ -17,6 +17,7 @@ extern "C"
 {
 
 #include <libavformat/avformat.h>
+#include <libavutil/time.h>
 };
 
 
@@ -28,6 +29,10 @@ public:
     AVFormatContext *pFormatCtx = NULL;
     TCKAudio *audio = NULL;
     TCKPlayStatus *playstatus = NULL;
+
+    pthread_mutex_t init_mutex;
+    bool exit = false;
+
 public:
     TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *url);
 
@@ -42,6 +47,8 @@ public:
     void pause();
 
     void resume();
+
+    void release();
 };
 
 

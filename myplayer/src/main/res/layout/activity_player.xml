@@ -41,5 +41,13 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="恢复" />
+
+        <Button
+            android:id="@+id/btn_stop"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="停止" />
+
     </LinearLayout>
 </LinearLayout>

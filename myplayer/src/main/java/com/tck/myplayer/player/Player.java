@@ -104,6 +104,16 @@ public class Player {
         }
     }
 
+    public void stop() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                nativeStop();
+            }
+        }).start();
+    }
+
+
     public void onCallLoad(boolean load) {
         if (onLoadListener != null) {
             onLoadListener.onLoad(load);
@@ -128,6 +138,8 @@ public class Player {
     private native void nativeResume();
 
     private native void nativePause();
+
+    private native void nativeStop();
 
 
 }

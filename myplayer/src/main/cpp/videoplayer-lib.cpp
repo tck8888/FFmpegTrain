@@ -66,3 +66,21 @@ Java_com_tck_myplayer_player_Player_nativeResume(JNIEnv *env, jobject instance) 
         fFmpeg->resume();
     }
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_tck_myplayer_player_Player_nativeStop(JNIEnv *env, jobject instance) {
+    if (fFmpeg != NULL) {
+        fFmpeg->release();
+        delete (fFmpeg);
+        fFmpeg = NULL;
+        if (callJava != NULL) {
+            delete (callJava);
+            callJava = NULL;
+        }
+        if (playstatus != NULL) {
+            delete (playstatus);
+            playstatus = NULL;
+        }
+    }
+}

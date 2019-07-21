@@ -34,6 +34,7 @@ public class PlayerActivity extends AppCompatActivity {
     private Button btnStart;
     private Button btnPause;
     private Button btnResume;
+    private Button btnStop;
     // private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
     private String videoUrl = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3";
     private Player player;
@@ -43,11 +44,14 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
+
         surfaceView = (SurfaceView) findViewById(R.id.surface_view);
         btnPrepare = (Button) findViewById(R.id.btn_prepare);
         btnStart = (Button) findViewById(R.id.btn_start);
         btnPause = (Button) findViewById(R.id.btn_pause);
         btnResume = (Button) findViewById(R.id.btn_resume);
+        btnStop = (Button) findViewById(R.id.btn_stop);
+
 
         player = new Player();
 
@@ -102,6 +106,12 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 player.resume();
+            }
+        });
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                player.stop();
             }
         });
     }
