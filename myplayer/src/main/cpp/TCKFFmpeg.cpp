@@ -87,7 +87,8 @@ void TCKFFmpeg::decodeFFmpegThread() {
 
     if (audio != NULL) {
         getCodecContext(audio->codecpar, &audio->avCodecContext);
-    } else if (tckVideo != NULL) {
+    }
+    if (tckVideo != NULL) {
         getCodecContext(tckVideo->codecpar, &tckVideo->avCodecContext);
     }
 
@@ -103,7 +104,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
 
 void TCKFFmpeg::start() {
 
-    if (audio == NULL && tckVideo == NULL) {
+    if (audio == NULL) {
         return;
     }
     audio->play();
@@ -124,7 +125,6 @@ void TCKFFmpeg::start() {
                 audio->queue->putAvpacket(avPacket);
             } else if (avPacket->stream_index == tckVideo->streamIndex) {
                 tckVideo->queue->putAvpacket(avPacket);
-                LOGE("获取到视频")
             } else {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
@@ -190,6 +190,15 @@ void TCKFFmpeg::release() {
         audio->release();
         delete (audio);
         audio = NULL;
+    }
+
+    if (LOG_DEBUG) {
+        LOGE("释放 video");
+    }
+    if (tckVideo != NULL) {
+        tckVideo->release();
+        delete (tckVideo);
+        tckVideo = NULL;
     }
 
     if (LOG_DEBUG) {

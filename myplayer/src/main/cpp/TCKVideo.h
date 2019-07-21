@@ -13,6 +13,7 @@
 
 extern "C" {
 #include "include/libavcodec/avcodec.h"
+#include <libavutil/time.h>
 };
 
 class TCKVideo {
@@ -35,6 +36,8 @@ public:
     ~TCKVideo();
 
     void play();
+
+    void release();
 };
 
 
