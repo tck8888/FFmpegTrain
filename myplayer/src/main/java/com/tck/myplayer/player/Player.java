@@ -192,6 +192,14 @@ public class Player {
         }
     }
 
+    public void onCallRenderYUV(int width,
+                                int height,
+                                byte[] y,
+                                byte[] u,
+                                byte[] v) {
+        MyLog.d("获取到视频的数据width=" + width + " height= " + height);
+    }
+
     private native void nativePrepared(String source);
 
     private native void nativeStart();

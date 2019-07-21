@@ -24,6 +24,7 @@ CallJava::CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj) {
     jmid_timeinfo = env->GetMethodID(jlz, "onCallTimeInfo", "(II)V");
     jmid_error = env->GetMethodID(jlz, "onCallError", "(ILjava/lang/String;)V");
     jmid_complete = env->GetMethodID(jlz, "onCallComplete", "()V");
+    jmid_renderyuv = env->GetMethodID(jlz, "onCallRenderYUV", "(II[B[B[B)V");
 }
 
 CallJava::~CallJava() {
@@ -91,7 +92,7 @@ void CallJava::onCallError(int type, int code, char *msg) {
         JNIEnv *jniEnv;
         if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
             if (LOG_DEBUG) {
-                LOGE("call onCallTimeInfo worng");
+                LOGE("call onCallError worng");
             }
             return;
         }
@@ -117,6 +118,39 @@ void CallJava::onCallComplete(int type) {
         jniEnv->CallVoidMethod(jobj, jmid_complete);
         javaVM->DetachCurrentThread();
     }
+}
+
+void CallJava::onCallRenderYUV(int width,
+                               int height,
+                               uint8_t *fy,
+                               uint8_t *fu,
+                               uint8_t *fv) {
+
+    JNIEnv *jniEnv;
+    if (javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK) {
+        if (LOG_DEBUG) {
+            LOGE("call onCallRenderYUV worng");
+        }
+        return;
+    }
+    jbyteArray y = jniEnv->NewByteArray(width * height);
+    jniEnv->SetByteArrayRegion(y, 0, width * height, reinterpret_cast<const jbyte *>(fy));
+
+    jbyteArray u = jniEnv->NewByteArray(width * height / 4);
+    jniEnv->SetByteArrayRegion(u, 0, width * height / 4, reinterpret_cast<const jbyte *>(fu));
+
+    jbyteArray v = jniEnv->NewByteArray(width * height / 4);
+    jniEnv->SetByteArrayRegion(v, 0, width * height / 4, reinterpret_cast<const jbyte *>(fv));
+
+    jniEnv->CallVoidMethod(jobj, jmid_renderyuv, height, width, y, u, v);
+
+    jniEnv->DeleteLocalRef(y);
+    jniEnv->DeleteLocalRef(u);
+    jniEnv->DeleteLocalRef(v);
+
+    javaVM->DetachCurrentThread();
+
+
 }
 
 

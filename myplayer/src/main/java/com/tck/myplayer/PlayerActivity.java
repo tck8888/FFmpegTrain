@@ -80,11 +80,11 @@ public class PlayerActivity extends AppCompatActivity {
         player.setOnLoadListener(new OnLoadListener() {
             @Override
             public void onLoad(boolean load) {
-                if (load) {
-                    MyLog.d("加载中");
-                } else {
-                    MyLog.d("播放中");
-                }
+//                if (load) {
+//                    MyLog.d("加载中");
+//                } else {
+//                    MyLog.d("播放中");
+//                }
             }
         });
 
