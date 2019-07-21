@@ -15,6 +15,8 @@ CallJava *callJava = NULL;
 TCKFFmpeg *fFmpeg = NULL;
 TCKPlayStatus *playstatus = NULL;
 
+bool nexit = true;
+
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     jint result = -1;
@@ -38,6 +40,7 @@ Java_com_tck_myplayer_player_Player_nativePrepared(JNIEnv *env, jobject instance
         if (callJava == NULL) {
             callJava = new CallJava(javaVM, env, &instance);
         }
+        callJava->onCallLoad(MAIN_THREAD, true);
         playstatus = new TCKPlayStatus();
         fFmpeg = new TCKFFmpeg(playstatus, callJava, source);
         fFmpeg->prepared();
@@ -70,6 +73,12 @@ Java_com_tck_myplayer_player_Player_nativeResume(JNIEnv *env, jobject instance) 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_tck_myplayer_player_Player_nativeStop(JNIEnv *env, jobject instance) {
+
+    if (!nexit) {
+        return;
+    }
+    nexit = false;
+
     if (fFmpeg != NULL) {
         fFmpeg->release();
         delete (fFmpeg);
@@ -83,4 +92,5 @@ Java_com_tck_myplayer_player_Player_nativeStop(JNIEnv *env, jobject instance) {
             playstatus = NULL;
         }
     }
+    nexit = true;
 }

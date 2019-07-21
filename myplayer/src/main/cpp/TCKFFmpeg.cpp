@@ -51,6 +51,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         if (LOG_DEBUG) {
             LOGE("avformat_open_input error   %s", url);
         }
+        callJava->onCallError(CHILD_THREAD, 1001, "can not open url");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -59,6 +60,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         if (LOG_DEBUG) {
             LOGE("avformat_find_stream_info error   %s", url);
         }
+        callJava->onCallError(CHILD_THREAD, 1002, "can not find streams from url");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -83,6 +85,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         if (LOG_DEBUG) {
             LOGE("can not find decoder");
         }
+        callJava->onCallError(CHILD_THREAD, 1003, "can not find decoder");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -93,6 +96,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         if (LOG_DEBUG) {
             LOGE("can not alloc new decodecctx");
         }
+        callJava->onCallError(CHILD_THREAD, 1004, "can not alloc new decodecctx");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -102,6 +106,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         if (LOG_DEBUG) {
             LOGE("can not fill avCodecContext");
         }
+        callJava->onCallError(CHILD_THREAD, 1005, "ccan not fill decodecctx");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -111,6 +116,7 @@ void TCKFFmpeg::decodeFFmpegThread() {
         if (LOG_DEBUG) {
             LOGE("cant not open audio streams");
         }
+        callJava->onCallError(CHILD_THREAD, 1006, "cant not open audio strames");
         exit = true;
         pthread_mutex_unlock(&init_mutex);
         return;
@@ -126,7 +132,6 @@ void TCKFFmpeg::decodeFFmpegThread() {
 }
 
 void TCKFFmpeg::start() {
-    LOGE(" start");
     if (audio == NULL) {
         if (LOG_DEBUG) {
             LOGE("audio is null");

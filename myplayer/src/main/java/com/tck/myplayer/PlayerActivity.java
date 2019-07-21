@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.tck.myplayer.listener.OnErrorListener;
 import com.tck.myplayer.listener.OnLoadListener;
 import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
@@ -41,7 +42,6 @@ public class PlayerActivity extends AppCompatActivity {
     private Button btnResume;
     private Button btnStop;
     private TextView tvTime;
-
 
 
     // private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
@@ -101,6 +101,13 @@ public class PlayerActivity extends AppCompatActivity {
                 message.what = 1;
                 message.obj = timeInfoBean;
                 handler.sendMessage(message);
+            }
+        });
+
+        player.setOnErrorListener(new OnErrorListener() {
+            @Override
+            public void onError(int code, String msg) {
+                MyLog.e("code= " + code + " msg= " + msg);
             }
         });
 

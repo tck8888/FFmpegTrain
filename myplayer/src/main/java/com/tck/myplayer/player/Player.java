@@ -2,6 +2,7 @@ package com.tck.myplayer.player;
 
 import android.text.TextUtils;
 
+import com.tck.myplayer.listener.OnErrorListener;
 import com.tck.myplayer.listener.OnLoadListener;
 import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
@@ -39,6 +40,7 @@ public class Player {
     private OnLoadListener onLoadListener;
     private OnPauseResumeListener onPauseResumeListener;
     private OnTimeInfoListener onTimeInfoListener;
+    private OnErrorListener onErrorListener;
 
     public Player() {
     }
@@ -57,7 +59,6 @@ public class Player {
             MyLog.d("source not be empty");
             return;
         }
-        onCallLoad(true);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -82,6 +83,10 @@ public class Player {
 
     public void setOnTimeInfoListener(OnTimeInfoListener onTimeInfoListener) {
         this.onTimeInfoListener = onTimeInfoListener;
+    }
+
+    public void setOnErrorListener(OnErrorListener onErrorListener) {
+        this.onErrorListener = onErrorListener;
     }
 
     public void start() {
@@ -149,6 +154,12 @@ public class Player {
         }
     }
 
+    public void onCallError(int code, String msg) {
+        if (onErrorListener != null) {
+            stop();
+            onErrorListener.onError(code, msg);
+        }
+    }
 
     private native void nativePrepared(String source);
 
