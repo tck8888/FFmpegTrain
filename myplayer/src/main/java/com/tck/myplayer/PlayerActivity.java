@@ -4,9 +4,12 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,8 +18,11 @@ import androidx.core.app.ActivityCompat;
 import com.tck.myplayer.listener.OnLoadListener;
 import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
+import com.tck.myplayer.listener.OnTimeInfoListener;
 import com.tck.myplayer.log.MyLog;
 import com.tck.myplayer.player.Player;
+import com.tck.myplayer.player.TimeInfoBean;
+import com.tck.myplayer.util.TimeUtil;
 
 import java.io.File;
 
@@ -30,11 +36,14 @@ import java.io.File;
 public class PlayerActivity extends AppCompatActivity {
 
     private SurfaceView surfaceView;
-    private Button btnPrepare;
     private Button btnStart;
     private Button btnPause;
     private Button btnResume;
     private Button btnStop;
+    private TextView tvTime;
+
+
+
     // private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
     private String videoUrl = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3";
     private Player player;
@@ -46,12 +55,11 @@ public class PlayerActivity extends AppCompatActivity {
 
 
         surfaceView = (SurfaceView) findViewById(R.id.surface_view);
-        btnPrepare = (Button) findViewById(R.id.btn_prepare);
         btnStart = (Button) findViewById(R.id.btn_start);
         btnPause = (Button) findViewById(R.id.btn_pause);
         btnResume = (Button) findViewById(R.id.btn_resume);
         btnStop = (Button) findViewById(R.id.btn_stop);
-
+        tvTime = (TextView) findViewById(R.id.tv_time);
 
         player = new Player();
 
@@ -59,6 +67,7 @@ public class PlayerActivity extends AppCompatActivity {
             @Override
             public void onPrepared() {
                 MyLog.d("准备好了，可以开始播放音乐");
+                player.start();
             }
         });
         player.setOnLoadListener(new OnLoadListener() {
@@ -72,13 +81,6 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
 
-        btnPrepare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                player.setSource(videoUrl);
-                player.prepared();
-            }
-        });
 
         player.setOnPauseResumeListener(new OnPauseResumeListener() {
             @Override
@@ -90,10 +92,23 @@ public class PlayerActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+        player.setOnTimeInfoListener(new OnTimeInfoListener() {
+            @Override
+            public void onTimeInfo(TimeInfoBean timeInfoBean) {
+                Message message = Message.obtain();
+                message.what = 1;
+                message.obj = timeInfoBean;
+                handler.sendMessage(message);
+            }
+        });
+
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                player.start();
+                player.setSource(videoUrl);
+                player.prepared();
             }
         });
         btnPause.setOnClickListener(new View.OnClickListener() {
@@ -115,6 +130,18 @@ public class PlayerActivity extends AppCompatActivity {
             }
         });
     }
+
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == 1) {
+                TimeInfoBean wlTimeInfoBean = (TimeInfoBean) msg.obj;
+                tvTime.setText(TimeUtil.secdsToDateFormat(wlTimeInfoBean.getTotalTime(), wlTimeInfoBean.getTotalTime())
+                        + "/" + TimeUtil.secdsToDateFormat(wlTimeInfoBean.getCurrentTime(), wlTimeInfoBean.getTotalTime()));
+            }
+        }
+    };
 
     private void startPlayWithPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
