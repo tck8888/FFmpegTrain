@@ -43,6 +43,7 @@ public class PlayerActivity extends AppCompatActivity {
     private Button btnPause;
     private Button btnResume;
     private Button btnStop;
+    private Button btnNext;
     private SeekBar seekBar;
     private TextView tvTime;
 
@@ -56,12 +57,12 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
-
         surfaceView = (SurfaceView) findViewById(R.id.surface_view);
         btnStart = (Button) findViewById(R.id.btn_start);
         btnPause = (Button) findViewById(R.id.btn_pause);
         btnResume = (Button) findViewById(R.id.btn_resume);
         btnStop = (Button) findViewById(R.id.btn_stop);
+        btnNext = (Button) findViewById(R.id.btn_next);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         tvTime = (TextView) findViewById(R.id.tv_time);
 
@@ -164,6 +165,13 @@ public class PlayerActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) {
                 int progress = seekBar.getProgress();
                 player.seek(progress);
+            }
+        });
+
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                player.playNext("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
             }
         });
     }

@@ -34,8 +34,9 @@ public class Player {
     /**
      * 数据源
      */
-    private String source;
+    private static String source;
     private static TimeInfoBean timeInfoBean;
+    private static boolean playNext = false;
 
     private OnPreparedListener onPreparedListener;
     private OnLoadListener onLoadListener;
@@ -124,6 +125,7 @@ public class Player {
 
 
     public void stop() {
+        timeInfoBean = null;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -136,6 +138,11 @@ public class Player {
         nativeSeek(secds);
     }
 
+    public void playNext(String url) {
+        source = url;
+        playNext = true;
+        stop();
+    }
 
     public void onCallTimeInfo(int currentTime, int totalTime) {
         if (onTimeInfoListener != null) {
@@ -178,6 +185,12 @@ public class Player {
         }
     }
 
+    public void onCallNext() {
+        if (playNext) {
+            playNext = false;
+            prepared();
+        }
+    }
 
     private native void nativePrepared(String source);
 

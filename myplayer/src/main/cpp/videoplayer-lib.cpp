@@ -49,8 +49,7 @@ Java_com_tck_myplayer_player_Player_nativePrepared(JNIEnv *env, jobject instance
     }
 }
 
-void *startCallBack(void *data)
-{
+void *startCallBack(void *data) {
     TCKFFmpeg *fFmpeg = (TCKFFmpeg *) data;
     fFmpeg->start();
     pthread_exit(&thread_start);
@@ -60,8 +59,7 @@ void *startCallBack(void *data)
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_tck_myplayer_player_Player_nativeStart(JNIEnv *env, jobject instance) {
-    if(fFmpeg != NULL)
-    {
+    if (fFmpeg != NULL) {
         pthread_create(&thread_start, NULL, startCallBack, fFmpeg);
     }
 }
@@ -88,6 +86,10 @@ Java_com_tck_myplayer_player_Player_nativeStop(JNIEnv *env, jobject instance) {
     if (!nexit) {
         return;
     }
+
+    jclass jlz = env->GetObjectClass(instance);
+    jmethodID jmid_onCallNext = env->GetMethodID(jlz, "onCallNext", "()V");
+
     nexit = false;
 
     if (fFmpeg != NULL) {
@@ -104,6 +106,8 @@ Java_com_tck_myplayer_player_Player_nativeStop(JNIEnv *env, jobject instance) {
         }
     }
     nexit = true;
+
+    env->CallVoidMethod(instance,jmid_onCallNext);
 }
 
 extern "C"

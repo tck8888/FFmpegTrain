@@ -41,13 +41,19 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="停止" />
-
+        <Button
+            android:id="@+id/btn_next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="切换" />
     </LinearLayout>
 
     <SeekBar
         android:id="@+id/seek_bar"
         android:layout_width="match_parent"
         android:layout_height="50dp" />
+
 
     <TextView
         android:id="@+id/tv_time"
