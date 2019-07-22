@@ -23,6 +23,7 @@ import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
 import com.tck.myplayer.listener.OnTimeInfoListener;
 import com.tck.myplayer.log.MyLog;
+import com.tck.myplayer.opengl.TCKGLSurfaceView;
 import com.tck.myplayer.player.Player;
 import com.tck.myplayer.player.TimeInfoBean;
 import com.tck.myplayer.util.TimeUtil;
@@ -38,7 +39,7 @@ import java.io.File;
  */
 public class PlayerActivity extends AppCompatActivity {
 
-    private SurfaceView surfaceView;
+    private TCKGLSurfaceView surfaceView;
     private Button btnStart;
     private Button btnPause;
     private Button btnResume;
@@ -49,7 +50,7 @@ public class PlayerActivity extends AppCompatActivity {
 
 
     // private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
-    private String videoUrl = "/sdcard/DCIM/Camera/eacc4ca0e547e0f4f5a5ea4f1fa1b7f8.mp4";
+   private String videoUrl = "/sdcard/DCIM/Camera/4c70990af2eed1a5ef7a87af018f82aa.mp4";
     //private String videoUrl = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3";
     private Player player;
 
@@ -58,7 +59,7 @@ public class PlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
-        surfaceView = (SurfaceView) findViewById(R.id.surface_view);
+        surfaceView = (TCKGLSurfaceView) findViewById(R.id.surface_view);
         btnStart = (Button) findViewById(R.id.btn_start);
         btnPause = (Button) findViewById(R.id.btn_pause);
         btnResume = (Button) findViewById(R.id.btn_resume);
@@ -69,6 +70,8 @@ public class PlayerActivity extends AppCompatActivity {
 
 
         player = new Player();
+
+        player.setSurfaceView(surfaceView);
 
         player.setOnPreparedListener(new OnPreparedListener() {
             @Override
@@ -128,8 +131,8 @@ public class PlayerActivity extends AppCompatActivity {
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                player.setSource(videoUrl);
-                player.prepared();
+                startPlayWithPermissions();
+
             }
         });
         btnPause.setOnClickListener(new View.OnClickListener() {
@@ -175,6 +178,8 @@ public class PlayerActivity extends AppCompatActivity {
                // player.playNext("http://ngcdn004.cnr.cn/live/dszs/index.m3u8");
             }
         });
+
+
     }
 
     Handler handler = new Handler() {
@@ -198,6 +203,9 @@ public class PlayerActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE},
                     100);
+        }else {
+            player.setSource(videoUrl);
+            player.prepared();
         }
     }
 }

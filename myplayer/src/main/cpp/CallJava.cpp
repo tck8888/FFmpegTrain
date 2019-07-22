@@ -25,6 +25,7 @@ CallJava::CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj) {
     jmid_error = env->GetMethodID(jlz, "onCallError", "(ILjava/lang/String;)V");
     jmid_complete = env->GetMethodID(jlz, "onCallComplete", "()V");
     jmid_renderyuv = env->GetMethodID(jlz, "onCallRenderYUV", "(II[B[B[B)V");
+
 }
 
 CallJava::~CallJava() {
@@ -142,7 +143,7 @@ void CallJava::onCallRenderYUV(int width,
     jbyteArray v = jniEnv->NewByteArray(width * height / 4);
     jniEnv->SetByteArrayRegion(v, 0, width * height / 4, reinterpret_cast<const jbyte *>(fv));
 
-    jniEnv->CallVoidMethod(jobj, jmid_renderyuv, height, width, y, u, v);
+    jniEnv->CallVoidMethod(jobj, jmid_renderyuv, width, height, y, u, v);
 
     jniEnv->DeleteLocalRef(y);
     jniEnv->DeleteLocalRef(u);

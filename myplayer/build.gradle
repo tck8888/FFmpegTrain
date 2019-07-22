@@ -24,6 +24,7 @@ android {
         }
     }
 
+
     buildTypes {
         release {
             minifyEnabled false
@@ -43,6 +44,7 @@ android {
             jniLibs.srcDirs = ['src/main/jniLibs']
         }
     }
+
 
     externalNativeBuild {
         cmake {

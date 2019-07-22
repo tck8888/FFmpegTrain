@@ -86,12 +86,12 @@ void TCKFFmpeg::decodeFFmpegThread() {
         }
         else if(pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            if(tckVideo == NULL)
+            if(video == NULL)
             {
-                tckVideo = new TCKVideo(playstatus, callJava);
-                tckVideo->streamIndex = i;
-                tckVideo->codecpar = pFormatCtx->streams[i]->codecpar;
-                tckVideo->time_base = pFormatCtx->streams[i]->time_base;
+                video = new TCKVideo(playstatus, callJava);
+                video->streamIndex = i;
+                video->codecpar = pFormatCtx->streams[i]->codecpar;
+                video->time_base = pFormatCtx->streams[i]->time_base;
             }
         }
 
@@ -101,9 +101,9 @@ void TCKFFmpeg::decodeFFmpegThread() {
     {
         getCodecContext(audio->codecpar, &audio->avCodecContext);
     }
-    if(tckVideo != NULL)
+    if(video != NULL)
     {
-        getCodecContext(tckVideo->codecpar, &tckVideo->avCodecContext);
+        getCodecContext(video->codecpar, &video->avCodecContext);
     }
 
     if(callJava != NULL)
@@ -125,7 +125,7 @@ void TCKFFmpeg::start() {
         return;
     }
     audio->play();
-    tckVideo->play();
+    video->play();
     while(playstatus != NULL && !playstatus->exit)
     {
         if(playstatus->seek)
@@ -134,11 +134,11 @@ void TCKFFmpeg::start() {
             continue;
         }
 
-        if(audio->queue->getQueueSize() > 40)
-        {
-            av_usleep(1000 * 100);
-            continue;
-        }
+//        if(audio->queue->getQueueSize() > 40)
+//        {
+//            av_usleep(1000 * 100);
+//            continue;
+//        }
         AVPacket *avPacket = av_packet_alloc();
         if(av_read_frame(pFormatCtx, avPacket) == 0)
         {
@@ -146,9 +146,9 @@ void TCKFFmpeg::start() {
             {
                 audio->queue->putAvpacket(avPacket);
             }
-            else if(avPacket->stream_index == tckVideo->streamIndex)
+            else if(avPacket->stream_index == video->streamIndex)
             {
-                tckVideo->queue->putAvpacket(avPacket);
+                video->queue->putAvpacket(avPacket);
             }
             else{
                 av_packet_free(&avPacket);
@@ -231,11 +231,11 @@ void TCKFFmpeg::release() {
     {
         LOGE("释放 video");
     }
-    if(tckVideo != NULL)
+    if(video != NULL)
     {
-        tckVideo->release();
-        delete(tckVideo);
-        tckVideo = NULL;
+        video->release();
+        delete(video);
+        video = NULL;
     }
 
     if(LOG_DEBUG)

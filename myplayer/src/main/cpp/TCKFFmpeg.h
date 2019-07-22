@@ -39,7 +39,7 @@ public:
     pthread_mutex_t seek_mutex;
 
 
-    TCKVideo *tckVideo = NULL;
+    TCKVideo *video = NULL;
 
 public:
     TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *url);

@@ -7,20 +7,17 @@
 #include "TCKVideo.h"
 
 TCKVideo::TCKVideo(TCKPlayStatus *playStatus, CallJava *callJava) {
+
     this->playStatus = playStatus;
     this->callJava = callJava;
-    this->queue = new TCKQueue(playStatus);
-}
-
-TCKVideo::~TCKVideo() {
-
+    queue = new TCKQueue(playStatus);
 }
 
 void * playVideo(void *data)
 {
 
     TCKVideo *video = static_cast<TCKVideo *>(data);
-LOGE("=========")
+
     while(video->playStatus != NULL && !video->playStatus->exit)
     {
 
@@ -149,23 +146,34 @@ LOGE("=========")
 void TCKVideo::play() {
 
     pthread_create(&thread_play, NULL, playVideo, this);
+
 }
 
 void TCKVideo::release() {
-    if (queue != NULL) {
-        delete (queue);
+
+    if(queue != NULL)
+    {
+        delete(queue);
         queue = NULL;
     }
-    if (avCodecContext != NULL) {
+    if(avCodecContext != NULL)
+    {
         avcodec_close(avCodecContext);
         avcodec_free_context(&avCodecContext);
         avCodecContext = NULL;
     }
 
-    if (playStatus != NULL) {
+    if(playStatus != NULL)
+    {
         playStatus = NULL;
     }
-    if (callJava != NULL) {
+    if(callJava != NULL)
+    {
         callJava = NULL;
     }
+
+}
+
+TCKVideo::~TCKVideo() {
+
 }

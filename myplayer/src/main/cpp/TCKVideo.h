@@ -11,11 +11,12 @@
 #include "CallJava.h"
 #include "TCKPlayStatus.h"
 
-extern "C" {
-#include "include/libavcodec/avcodec.h"
-#include <libavutil/time.h>
-#include <libavutil/imgutils.h>
+extern "C"
+{
 #include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/time.h>
+#include <libavcodec/avcodec.h>
 };
 
 class TCKVideo {

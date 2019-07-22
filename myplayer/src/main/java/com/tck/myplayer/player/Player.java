@@ -9,6 +9,7 @@ import com.tck.myplayer.listener.OnPauseResumeListener;
 import com.tck.myplayer.listener.OnPreparedListener;
 import com.tck.myplayer.listener.OnTimeInfoListener;
 import com.tck.myplayer.log.MyLog;
+import com.tck.myplayer.opengl.TCKGLSurfaceView;
 
 /**
  * <p>description:</p>
@@ -44,6 +45,8 @@ public class Player {
     private OnTimeInfoListener onTimeInfoListener;
     private OnErrorListener onErrorListener;
     private OnCompleteListener onCompleteListener;
+
+    private TCKGLSurfaceView surfaceView;
 
     public Player() {
     }
@@ -94,6 +97,10 @@ public class Player {
 
     public void setOnCompleteListener(OnCompleteListener onCompleteListener) {
         this.onCompleteListener = onCompleteListener;
+    }
+
+    public void setSurfaceView(TCKGLSurfaceView surfaceView) {
+        this.surfaceView = surfaceView;
     }
 
     public void start() {
@@ -198,6 +205,9 @@ public class Player {
                                 byte[] u,
                                 byte[] v) {
         MyLog.d("获取到视频的数据width=" + width + " height= " + height);
+        if (surfaceView != null) {
+            surfaceView.setYUVData(width, height, y, u, v);
+        }
     }
 
     private native void nativePrepared(String source);
