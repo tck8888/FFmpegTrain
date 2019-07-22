@@ -10,6 +10,7 @@
 #include "TCKQueue.h"
 #include "CallJava.h"
 #include "TCKPlayStatus.h"
+#include "TCKAudio.h"
 
 extern "C"
 {
@@ -33,14 +34,26 @@ public:
 
     pthread_t thread_play;
 
+    TCKAudio *audio = NULL;
+
+    int clock = 0;
+
+    double delayTime = 0;
+
+    double defaultDelayTime = 0.04;
+
 public:
-    TCKVideo(TCKPlayStatus *playStatus,CallJava *callJava);
+    TCKVideo(TCKPlayStatus *playStatus, CallJava *callJava);
 
     ~TCKVideo();
 
     void play();
 
     void release();
+
+    double getFrameDiff(AVFrame *avFrame);
+
+    double getDelayTime(double diff);
 };
 
 

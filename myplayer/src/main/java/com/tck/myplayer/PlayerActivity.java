@@ -49,8 +49,8 @@ public class PlayerActivity extends AppCompatActivity {
     private TextView tvTime;
 
 
-    // private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
-   private String videoUrl = "/sdcard/DCIM/Camera/4c70990af2eed1a5ef7a87af018f82aa.mp4";
+     private String videoUrl = "https://display-work-video.oss-cn-hangzhou.aliyuncs.com/105201.mp4";
+    //private String videoUrl = "/sdcard/DCIM/Camera/4c70990af2eed1a5ef7a87af018f82aa.mp4";
     //private String videoUrl = "http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3";
     private Player player;
 

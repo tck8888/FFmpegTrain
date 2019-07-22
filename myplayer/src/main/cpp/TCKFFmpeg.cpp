@@ -14,8 +14,7 @@ TCKFFmpeg::TCKFFmpeg(TCKPlayStatus *playstatus, CallJava *callJava, const char *
     pthread_mutex_init(&seek_mutex, NULL);
 }
 
-void *decodeFFmpeg(void *data)
-{
+void *decodeFFmpeg(void *data) {
     TCKFFmpeg *wlFFmpeg = (TCKFFmpeg *) data;
     wlFFmpeg->decodeFFmpegThread();
     pthread_exit(&wlFFmpeg->decodeThread);
@@ -27,11 +26,9 @@ void TCKFFmpeg::prepared() {
 
 }
 
-int avformat_callback(void *ctx)
-{
+int avformat_callback(void *ctx) {
     TCKFFmpeg *fFmpeg = (TCKFFmpeg *) ctx;
-    if(fFmpeg->playstatus->exit)
-    {
+    if (fFmpeg->playstatus->exit) {
         return AVERROR_EOF;
     }
     return 0;
@@ -48,10 +45,8 @@ void TCKFFmpeg::decodeFFmpegThread() {
     pFormatCtx->interrupt_callback.callback = avformat_callback;
     pFormatCtx->interrupt_callback.opaque = this;
 
-    if(avformat_open_input(&pFormatCtx, url, NULL, NULL) != 0)
-    {
-        if(LOG_DEBUG)
-        {
+    if (avformat_open_input(&pFormatCtx, url, NULL, NULL) != 0) {
+        if (LOG_DEBUG) {
             LOGE("can not open url :%s", url);
         }
         callJava->onCallError(CHILD_THREAD, 1001, "can not open url");
@@ -59,10 +54,8 @@ void TCKFFmpeg::decodeFFmpegThread() {
         pthread_mutex_unlock(&init_mutex);
         return;
     }
-    if(avformat_find_stream_info(pFormatCtx, NULL) < 0)
-    {
-        if(LOG_DEBUG)
-        {
+    if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
+        if (LOG_DEBUG) {
             LOGE("can not find streams from %s", url);
         }
         callJava->onCallError(CHILD_THREAD, 1002, "can not find streams from url");
@@ -70,48 +63,49 @@ void TCKFFmpeg::decodeFFmpegThread() {
         pthread_mutex_unlock(&init_mutex);
         return;
     }
-    for(int i = 0; i < pFormatCtx->nb_streams; i++)
-    {
-        if(pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)//得到音频流
+    for (int i = 0; i < pFormatCtx->nb_streams; i++) {
+        if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)//得到音频流
         {
-            if(audio == NULL)
-            {
-                audio = new TCKAudio(playstatus, pFormatCtx->streams[i]->codecpar->sample_rate, callJava);
+            if (audio == NULL) {
+                audio = new TCKAudio(playstatus, pFormatCtx->streams[i]->codecpar->sample_rate,
+                                     callJava);
                 audio->streamIndex = i;
                 audio->codecpar = pFormatCtx->streams[i]->codecpar;
                 audio->duration = pFormatCtx->duration / AV_TIME_BASE;
                 audio->time_base = pFormatCtx->streams[i]->time_base;
                 duration = audio->duration;
             }
-        }
-        else if(pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
-        {
-            if(video == NULL)
-            {
+        } else if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            if (video == NULL) {
                 video = new TCKVideo(playstatus, callJava);
                 video->streamIndex = i;
                 video->codecpar = pFormatCtx->streams[i]->codecpar;
                 video->time_base = pFormatCtx->streams[i]->time_base;
+
+
+                int num = pFormatCtx->streams[i]->avg_frame_rate.num;
+                int den = pFormatCtx->streams[i]->avg_frame_rate.den;
+                if (num != 0 && den != 0) {
+                    int fps = num / den;
+                    video->defaultDelayTime = 1.0 / fps;
+                }
+
             }
         }
 
     }
 
-    if(audio != NULL)
-    {
+    if (audio != NULL) {
         getCodecContext(audio->codecpar, &audio->avCodecContext);
     }
-    if(video != NULL)
-    {
+    if (video != NULL) {
         getCodecContext(video->codecpar, &video->avCodecContext);
     }
 
-    if(callJava != NULL)
-    {
-        if(playstatus != NULL && !playstatus->exit)
-        {
+    if (callJava != NULL) {
+        if (playstatus != NULL && !playstatus->exit) {
             callJava->onCallPrepared(CHILD_THREAD);
-        } else{
+        } else {
             exit = true;
         }
     }
@@ -120,16 +114,17 @@ void TCKFFmpeg::decodeFFmpegThread() {
 
 void TCKFFmpeg::start() {
 
-    if(audio == NULL)
-    {
+    if (audio == NULL) {
         return;
     }
+    if (video == NULL) {
+        return;
+    }
+    video->audio = audio;
     audio->play();
     video->play();
-    while(playstatus != NULL && !playstatus->exit)
-    {
-        if(playstatus->seek)
-        {
+    while (playstatus != NULL && !playstatus->exit) {
+        if (playstatus->seek) {
             av_usleep(1000 * 100);
             continue;
         }
@@ -140,30 +135,23 @@ void TCKFFmpeg::start() {
 //            continue;
 //        }
         AVPacket *avPacket = av_packet_alloc();
-        if(av_read_frame(pFormatCtx, avPacket) == 0)
-        {
-            if(avPacket->stream_index == audio->streamIndex)
-            {
+        if (av_read_frame(pFormatCtx, avPacket) == 0) {
+            if (avPacket->stream_index == audio->streamIndex) {
                 audio->queue->putAvpacket(avPacket);
-            }
-            else if(avPacket->stream_index == video->streamIndex)
-            {
+            } else if (avPacket->stream_index == video->streamIndex) {
                 video->queue->putAvpacket(avPacket);
-            }
-            else{
+            } else {
                 av_packet_free(&avPacket);
                 av_free(avPacket);
             }
-        } else{
+        } else {
             av_packet_free(&avPacket);
             av_free(avPacket);
-            while(playstatus != NULL && !playstatus->exit)
-            {
-                if(audio->queue->getQueueSize() > 0)
-                {
+            while (playstatus != NULL && !playstatus->exit) {
+                if (audio->queue->getQueueSize() > 0) {
                     av_usleep(1000 * 100);
                     continue;
-                } else{
+                } else {
                     playstatus->exit = true;
                     break;
                 }
@@ -171,8 +159,7 @@ void TCKFFmpeg::start() {
             break;
         }
     }
-    if(callJava != NULL)
-    {
+    if (callJava != NULL) {
         callJava->onCallComplete(CHILD_THREAD);
     }
     exit = true;
@@ -180,88 +167,72 @@ void TCKFFmpeg::start() {
 }
 
 void TCKFFmpeg::pause() {
-    if(audio != NULL)
-    {
+    if (audio != NULL) {
         audio->pause();
     }
 }
 
 void TCKFFmpeg::resume() {
-    if(audio != NULL)
-    {
+    if (audio != NULL) {
         audio->resume();
     }
 }
 
 void TCKFFmpeg::release() {
 
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
         LOGE("开始释放Ffmpe");
     }
     playstatus->exit = true;
     pthread_mutex_lock(&init_mutex);
     int sleepCount = 0;
-    while (!exit)
-    {
-        if(sleepCount > 1000)
-        {
+    while (!exit) {
+        if (sleepCount > 1000) {
             exit = true;
         }
-        if(LOG_DEBUG)
-        {
+        if (LOG_DEBUG) {
             LOGE("wait ffmpeg  exit %d", sleepCount);
         }
         sleepCount++;
         av_usleep(1000 * 10);//暂停10毫秒
     }
 
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
         LOGE("释放 Audio");
     }
 
-    if(audio != NULL)
-    {
+    if (audio != NULL) {
         audio->release();
-        delete(audio);
+        delete (audio);
         audio = NULL;
     }
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
         LOGE("释放 video");
     }
-    if(video != NULL)
-    {
+    if (video != NULL) {
         video->release();
-        delete(video);
+        delete (video);
         video = NULL;
     }
 
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
         LOGE("释放 封装格式上下文");
     }
-    if(pFormatCtx != NULL)
-    {
+    if (pFormatCtx != NULL) {
         avformat_close_input(&pFormatCtx);
         avformat_free_context(pFormatCtx);
         pFormatCtx = NULL;
     }
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
         LOGE("释放 callJava");
     }
-    if(callJava != NULL)
-    {
+    if (callJava != NULL) {
         callJava = NULL;
     }
-    if(LOG_DEBUG)
-    {
+    if (LOG_DEBUG) {
         LOGE("释放 playstatus");
     }
-    if(playstatus != NULL)
-    {
+    if (playstatus != NULL) {
         playstatus = NULL;
     }
     pthread_mutex_unlock(&init_mutex);
@@ -274,14 +245,11 @@ TCKFFmpeg::~TCKFFmpeg() {
 
 void TCKFFmpeg::seek(int64_t secds) {
 
-    if(duration <= 0)
-    {
+    if (duration <= 0) {
         return;
     }
-    if(secds >= 0 && secds <= duration)
-    {
-        if(audio != NULL)
-        {
+    if (secds >= 0 && secds <= duration) {
+        if (audio != NULL) {
             playstatus->seek = true;
             audio->queue->clearAvpacket();
             audio->clock = 0;
@@ -297,10 +265,8 @@ void TCKFFmpeg::seek(int64_t secds) {
 
 int TCKFFmpeg::getCodecContext(AVCodecParameters *codecpar, AVCodecContext **avCodecContext) {
     AVCodec *dec = avcodec_find_decoder(codecpar->codec_id);
-    if(!dec)
-    {
-        if(LOG_DEBUG)
-        {
+    if (!dec) {
+        if (LOG_DEBUG) {
             LOGE("can not find decoder");
         }
         callJava->onCallError(CHILD_THREAD, 1003, "can not find decoder");
@@ -310,10 +276,8 @@ int TCKFFmpeg::getCodecContext(AVCodecParameters *codecpar, AVCodecContext **avC
     }
 
     *avCodecContext = avcodec_alloc_context3(dec);
-    if(!audio->avCodecContext)
-    {
-        if(LOG_DEBUG)
-        {
+    if (!audio->avCodecContext) {
+        if (LOG_DEBUG) {
             LOGE("can not alloc new decodecctx");
         }
         callJava->onCallError(CHILD_THREAD, 1004, "can not alloc new decodecctx");
@@ -322,10 +286,8 @@ int TCKFFmpeg::getCodecContext(AVCodecParameters *codecpar, AVCodecContext **avC
         return -1;
     }
 
-    if(avcodec_parameters_to_context(*avCodecContext, codecpar) < 0)
-    {
-        if(LOG_DEBUG)
-        {
+    if (avcodec_parameters_to_context(*avCodecContext, codecpar) < 0) {
+        if (LOG_DEBUG) {
             LOGE("can not fill decodecctx");
         }
         callJava->onCallError(CHILD_THREAD, 1005, "ccan not fill decodecctx");
@@ -334,10 +296,8 @@ int TCKFFmpeg::getCodecContext(AVCodecParameters *codecpar, AVCodecContext **avC
         return -1;
     }
 
-    if(avcodec_open2(*avCodecContext, dec, 0) != 0)
-    {
-        if(LOG_DEBUG)
-        {
+    if (avcodec_open2(*avCodecContext, dec, 0) != 0) {
+        if (LOG_DEBUG) {
             LOGE("cant not open audio strames");
         }
         callJava->onCallError(CHILD_THREAD, 1006, "cant not open audio strames");
