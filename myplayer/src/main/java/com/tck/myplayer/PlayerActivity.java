@@ -69,6 +69,7 @@ public class PlayerActivity extends AppCompatActivity {
         tvTime = (TextView) findViewById(R.id.tv_time);
 
 
+
         player = new Player();
 
         player.setSurfaceView(surfaceView);
