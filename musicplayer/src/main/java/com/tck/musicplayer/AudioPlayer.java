@@ -1,6 +1,5 @@
 package com.tck.musicplayer;
 
-import android.media.MediaPlayer;
 import android.text.TextUtils;
 
 public class AudioPlayer {
@@ -21,6 +20,7 @@ public class AudioPlayer {
         if (TextUtils.isEmpty(url)){
             throw  new NullPointerException("url is empty");
         }
+
 
         nativePlay(url);
     }

@@ -1,50 +1,47 @@
 package com.tck.ffmpegtrain;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.Manifest;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.SurfaceView;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.Button;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import com.tck.common.PermissionsUtils;
+import com.tck.musicplayer.AudioPlayerActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-
-    private TPlayer tPlayer;
+    private Button btnAudio;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        btnAudio = (Button) findViewById(R.id.btn_audio);
 
-        SurfaceView surfaceView = findViewById(R.id.surfaceView);
-
-        tPlayer = new TPlayer();
-        tPlayer.setSurfaceView(surfaceView);
-        tPlayer.setDataSource("http://vod.hkstv.tv/vod/data/userdata/vod/transcode/18bfb478c8013e65fc34ab5e9b0264f1/18bfb478c8013e65fc34ab5e9b0264f11/18bfb478c8013e65fc34ab5e9b0264f12/18bfb478c8013e65fc34ab5e9b0264f1.m3u8");
-
-        tPlayer.setOnPrepareListener(new TPlayer.onPrepareListener() {
+        btnAudio.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onPrepare() {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "准备好了", Toast.LENGTH_SHORT).show();
-                        System.out.println("=====================准备好了");
-                    }
-                });
-                tPlayer.start();
-            }
-        });
-
-        findViewById(R.id.btn_play).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                tPlayer.prepare();
+            public void onClick(View v) {
+                if (!PermissionsUtils.hasStoragePermissions(MainActivity.this)) {
+                    ActivityCompat.requestPermissions(MainActivity.this,
+                            new String[]{
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE},
+                            100);
+                } else {
+                    open(AudioPlayerActivity.class);
+                }
             }
         });
     }
 
 
+    private void open(Class clazz) {
+        if (clazz != null) {
+            Intent intent = new Intent(this, clazz);
+            startActivity(intent);
+        }
+    }
 }
