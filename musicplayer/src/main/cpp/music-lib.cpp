@@ -9,9 +9,10 @@
 // 在 c++ 中采用 c 的这种编译方式
 extern "C" {
 #include "libavformat/avformat.h"
+#include "libswresample/swresample.h"
 }
 
-jobject initCreateAudioTrack(JNIEnv *env){
+jobject initCreateAudioTrack(JNIEnv *env) {
     jclass jAudioTrackClass = env->FindClass("android/media/AudioTrack");
     jmethodID jAudioTackCMid = env->GetMethodID(jAudioTrackClass, "<init>", "(IIIIII)V");
 
@@ -25,10 +26,11 @@ jobject initCreateAudioTrack(JNIEnv *env){
                                                            "(III)I");
     int bufferSizeInBytes = env->CallStaticIntMethod(jAudioTrackClass, getMinBufferSizeMid,
                                                      sampleRateInHz, channelConfig, audioFormat);
-    LOGE("bufferSizeInBytes = %d",bufferSizeInBytes);
+    LOGE("bufferSizeInBytes = %d", bufferSizeInBytes);
 
     jobject jAudioTrackObj = env->NewObject(jAudioTrackClass, jAudioTackCMid, streamType,
-                                            sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes, mode);
+                                            sampleRateInHz, channelConfig, audioFormat,
+                                            bufferSizeInBytes, mode);
 
     // play
     jmethodID playMid = env->GetMethodID(jAudioTrackClass, "play", "()V");
@@ -66,15 +68,15 @@ Java_com_tck_musicplayer_AudioPlayer_nativePlay(JNIEnv *env, jobject instance, j
         // 第一件事，需要回调给 Java 层(下次课讲)
         // 第二件事，需要释放资源
         // return;
-        LOGE("format open input error: %s url=%s", av_err2str(formatOpenInputRes),url);
-        goto __av_resources_destroy;
+        LOGE("format open input error: %s url=%s", av_err2str(formatOpenInputRes), url);
+        return;
     }
 
     formatFindStreamInfoRes = avformat_find_stream_info(pFormatContext, NULL);
     if (formatFindStreamInfoRes < 0) {
         LOGE("format find stream info error: %s", av_err2str(formatFindStreamInfoRes));
         // 这种方式一般不推荐这么写，但是的确方便
-        goto __av_resources_destroy;
+        return;
     }
 
     // 查找音频流的 index
@@ -83,7 +85,7 @@ Java_com_tck_musicplayer_AudioPlayer_nativePlay(JNIEnv *env, jobject instance, j
     if (audioStramIndex < 0) {
         LOGE("format audio stream error: %s");
         // 这种方式一般不推荐这么写，但是的确方便
-        goto __av_resources_destroy;
+        return;
     }
 
     // 查找解码
@@ -92,27 +94,27 @@ Java_com_tck_musicplayer_AudioPlayer_nativePlay(JNIEnv *env, jobject instance, j
     if (pCodec == NULL) {
         LOGE("codec find audio decoder error");
         // 这种方式一般不推荐这么写，但是的确方便
-        goto __av_resources_destroy;
+        return;
     }
     // 打开解码器
     pCodecContext = avcodec_alloc_context3(pCodec);
     if (pCodecContext == NULL) {
         LOGE("codec alloc context error");
         // 这种方式一般不推荐这么写，但是的确方便
-        goto __av_resources_destroy;
+        return;
     }
     codecParametersToContextRes = avcodec_parameters_to_context(pCodecContext, pCodecParameters);
     if (codecParametersToContextRes < 0) {
         LOGE("codec parameters to context error: %s", av_err2str(codecParametersToContextRes));
         // 这种方式一般不推荐这么写，但是的确方便
-        goto __av_resources_destroy;
+        return;
     }
 
     codecOpenRes = avcodec_open2(pCodecContext, pCodec, NULL);
     if (codecOpenRes != 0) {
         LOGE("codec audio open error: %s", av_err2str(codecOpenRes));
         // 这种方式一般不推荐这么写，但是的确方便
-        goto __av_resources_destroy;
+        return;
     }
 
     jAudioTrackClass = env->FindClass("android/media/AudioTrack");
@@ -120,8 +122,44 @@ Java_com_tck_musicplayer_AudioPlayer_nativePlay(JNIEnv *env, jobject instance, j
     jAudioTrackObj = initCreateAudioTrack(env);
 
 
-    int dataSize = av_samples_get_buffer_size(NULL, pCodecParameters->channels,
-                                              pCodecContext->frame_size, pCodecContext->sample_fmt, 0);
+    //重采样
+    /*struct SwrContext *s,
+                                      int64_t out_ch_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate,
+                                      int64_t  in_ch_layout, enum AVSampleFormat  in_sample_fmt, int  in_sample_rate,
+                                      int log_offset, void *log_ctx*/
+    int64_t out_ch_layout AV_CH_LAYOUT_STEREO;
+    AVSampleFormat out_sample_fmt = AV_SAMPLE_FMT_S16;
+    int out_sample_rate = AUDIO_SAMPLE_RATE;
+    int64_t in_ch_layout = pCodecContext->channel_layout;
+    AVSampleFormat in_sample_fmt = pCodecContext->sample_fmt;
+    int in_sample_rate = pCodecContext->sample_rate;
+    SwrContext *swrContext = swr_alloc_set_opts(
+            NULL,
+            out_ch_layout,
+            out_sample_fmt,
+            out_sample_rate,
+            in_ch_layout,
+            in_sample_fmt,
+            in_sample_rate,
+            0, NULL
+    );
+
+    if (swrContext == NULL) {
+        return;
+    }
+    int swrInitRes = swr_init(swrContext);
+
+    if (swrInitRes < 0) {
+        return;
+    }
+
+    int outChannels = av_get_channel_layout_nb_channels(out_ch_layout);
+    int dataSize = av_samples_get_buffer_size(NULL, outChannels,
+                                              pCodecContext->frame_size, out_sample_fmt,
+                                              0);
+    uint8_t *resampleOut =(uint8_t *)(malloc(dataSize));
+    //重采样
+
     jbyteArray jPcmByteArray = env->NewByteArray(dataSize);
     jbyte *jPcmData = env->GetByteArrayElements(jPcmByteArray, NULL);
 
@@ -138,13 +176,21 @@ Java_com_tck_musicplayer_AudioPlayer_nativePlay(JNIEnv *env, jobject instance, j
                     index++;
                     LOGE("解码第 %d 帧", index);
 
+                    swr_convert(
+                            swrContext,
+                            &resampleOut,
+                            pFrame->nb_samples,
+                            (const uint8_t **) (pFrame->data),
+                            pFrame->nb_samples);
+
+
                     // write 写到缓冲区 pFrame.data -> javabyte
                     // size 是多大，装 pcm 的数据
                     // 1s 44100 点  2通道 ，2字节    44100*2*2
                     // 1帧不是一秒，pFrame->nb_samples点
 
                     // native 创建 c 数组
-                    memcpy(jPcmData, pFrame->data, dataSize);
+                    memcpy(jPcmData, resampleOut, dataSize);
                     // 0 把 c 的数组的数据同步到 jbyteArray , 然后释放native数组
                     env->ReleaseByteArrayElements(jPcmByteArray, jPcmData, JNI_COMMIT);
                     env->CallIntMethod(jAudioTrackObj, jWriteMid, jPcmByteArray, 0, dataSize);
@@ -166,18 +212,7 @@ Java_com_tck_musicplayer_AudioPlayer_nativePlay(JNIEnv *env, jobject instance, j
     env->ReleaseByteArrayElements(jPcmByteArray, jPcmData, 0);
     env->DeleteLocalRef(jPcmByteArray);
 
-    __av_resources_destroy:
-    if (pCodecContext != NULL) {
-        avcodec_close(pCodecContext);
-        avcodec_free_context(&pCodecContext);
-        pCodecContext = NULL;
-    }
 
-    if (pFormatContext != NULL) {
-        avformat_close_input(&pFormatContext);
-        avformat_free_context(pFormatContext);
-        pFormatContext = NULL;
-    }
     avformat_network_deinit();
 
 
