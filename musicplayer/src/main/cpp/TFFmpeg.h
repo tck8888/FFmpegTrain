@@ -22,7 +22,11 @@ public:
     TAudio *tckAudio = NULL;
     TCallJava *callJava = NULL;
 
-    AVFormatContext *pFormatContext=NULL;
+    AVFormatContext *pFormatContext = NULL;
+    //解码器
+    AVCodecContext *pCodecContext = NULL;
+    //重采样
+    SwrContext *swrContext = NULL;
 
 public:
     TFFmpeg(TCallJava *callJava, const char *url);
@@ -35,6 +39,8 @@ public:
     void prepare();
 
     void prepareAsync();
+
+    void prepare(ThreadMode threadMode);
 
     void callPlayerJniError(int code, char *msg);
 

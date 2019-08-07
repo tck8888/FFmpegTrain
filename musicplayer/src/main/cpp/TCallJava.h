@@ -7,6 +7,10 @@
 
 #include <jni.h>
 
+enum ThreadMode{
+    THREAD_CHILD,THREAD_MAIN
+};
+
 class TCallJava {
 
     jobject jAudioTrackObj;
